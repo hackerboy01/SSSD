@@ -13,6 +13,7 @@ if __name__ == '__main__':
     #outfile3 = open(r'E:\sinadata\relation.txt','w')
     outfile4 = open(r'E:\sinadata\comment.txt','w')
     cursor=conn.cursor()
+    outfile = outfile4
     con1="SELECT [user_id],[screen_name],[name],[province]\
           ,[city]\
           ,[location]\
