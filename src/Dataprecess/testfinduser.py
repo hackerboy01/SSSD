@@ -6,11 +6,11 @@ Created on 2013-12-24
 import os
 
 def run():
-    infile = open('../data/evaluateResult.txt','r')
-    infile2 = open('../data/restGroups.txt','r')
-    infile3 = open('../data/users.txt','r')
-    outfile = open('../data/spamprofile.txt','w')
-    outfile1 = open('../data/normalprofile.txt','w')
+    infile = open('../../sssddata/evaluateResult.txt','r')
+    infile2 = open('../../sssddata/restGroups.txt','r')
+    infile3 = open('../../sssddata/users.txt','r')
+    outfile = open('../../sssddata/spamprofile.txt','w')
+    outfile1 = open('../../sssddata/normalprofile.txt','w')
     
     spamlist=[]
     normallist=[]
