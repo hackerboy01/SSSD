@@ -142,8 +142,8 @@ def run():
             if flag == 0 :
                 break
         print 'The number of node whose indegree is bigger than 0:',len(follower.keys())     
-        finaluser = set(follow.keys()) & set(follow.keys()) 
-        print len(finaluser)
+        finaluser = set(follow.keys()) & set(follower.keys()) 
+        print 'The number of final users:',len(finaluser)
         finalgoodseeds = finaluser & goodseeds
         finalbadseeds = finaluser & badseeds   
           
