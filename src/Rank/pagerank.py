@@ -11,17 +11,17 @@ global Rank
 Rank ={}
 
 class PageRank:
-    def __init__(self, seeds, outnetwork,innetwork,users):
+    def __init__(self, seeds, outnetwork,innetwork,users,Rank={}):
         self.seeds = seeds
         self.outnetwork = outnetwork
         self.innetwork = innetwork
         self.users = users
-        self.Rank={}
+        self.Rank=Rank
         self.a = 0.85
         self.b = 1-self.a
         
-    def run(self,iteration=1):
-        self.initRank()
+    def run(self,iteration=1,good=1.0):
+        #self.initRank()
         count = 0
         while count < iteration:
             sigma = 0.0
@@ -30,31 +30,34 @@ class PageRank:
                 temp = 0.0
                 for inuser in self.innetwork[user]:
                     temp += tempRank[inuser]/len(self.outnetwork[inuser])
-                self.Rank[user] = self.a*temp + self.b*1.0/len(self.users)
+                self.Rank[user] = self.a*temp + self.b*good/len(self.users)
             for user in self.users:
                 sigma += abs(self.Rank[user]-tempRank[user])
             del tempRank
             count += 1
             print count,sigma
-           # if sigma < 1e-10:
-                #break
+            if sigma < 1e-8:
+                break
         return self.Rank   
 
-    def initRank(self):
+    def initRank(self,good=True):
+        if good:
+            good=1.0
+        else :
+            good = -1.0
+        print good
         for user in self.users:
             self.Rank[user]=0.0
             if user in self.seeds:
-                self.Rank[user]=1.0/len(self.seeds)
-    def showRank(self):
+                self.Rank[user]=good/len(self.seeds)
+    def orderRank(self,reverse=True):
         global Rank
         Rank ={}
-        Rank=dict(sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=True))
-        all = 0.0
-        for it in Rank.keys():
-            all += Rank[it]
-            
-        print all
-        print Rank
+        Rank=sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=reverse)
+        print Rank   
+    def showRank(self):
+        print self.Rank     
+        
 
 
 
@@ -163,7 +166,9 @@ if __name__ == '__main__':
     seeds = goodseeds + badseeds
     users = loadusers()
     PR = PageRank(seeds,outnet,innet,users)
-    PR.run(300)
-    PR.showRank()
+    PR.initRank(False)
+    PR.run(60,-1)
+    PR.orderRank()
+
     
     
