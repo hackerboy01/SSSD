@@ -21,7 +21,7 @@ def run():
     infile3 = open(r'..\..\..\sssddata\normalprofile.txt','r')
     outfile = open('../../../sssddata/following2.txt','w')
     outfile1 = open('../../../sssddata/samplerelation.txt','w')
-    outfile2 = open('../../../sssddata/spamleusers.txt','w')
+    outfile2 = open('../../../sssddata/sampleusers.txt','w')
     outfile3 = open('../../../sssddata/follower2.txt','w')
     outfile4 = open('../../../sssddata/finalseeds2.txt','w')
     #infile1 = ('','r')
@@ -81,10 +81,7 @@ def run():
             if temp[0] in users and (temp[1]) in testusers and temp[1] in filelist:
                 if temp[1] not in sampleusers:
                     sampleusers.add(str(temp[1]))           
-#                 if (temp[1]) in users and (temp[0]) in testusers and temp[0] in filelist:
-#                     if temp[0] not in sampleusers:
-#                         sampleusers.add(int(temp[0]))        
-#                         follow[temp[0]].append(temp[1])
+
                 
         infile.seek(0)
         count = 0
@@ -164,9 +161,9 @@ def run():
             if len(temp)>1:
                 if temp[0] in finaluser:
                     outfile2.write(line)
-                if temp[0] in goodseeds:
+                if temp[0] in finalgoodseeds:
                     outfile4.write(temp[0]+'\tgood\n')
-                if temp[0] in badseeds:
+                if temp[0] in finalbadseeds:
                     outfile4.write(temp[0]+'\tspam\n')
         print "Already read testuser" 
         
