@@ -19,6 +19,7 @@ class PageRank:
         self.Rank=Rank
         self.a = 0.85
         self.b = 1-self.a
+        self.order=[]
         
     def run(self,iteration=1,good=1.0):
         #self.initRank()
@@ -35,26 +36,24 @@ class PageRank:
                 sigma += abs(self.Rank[user]-tempRank[user])
             del tempRank
             count += 1
-            print count,sigma
-            if sigma < 1e-8:
+           # print count,sigma
+            if sigma < 1e-7:
                 break
         return self.Rank   
 
-    def initRank(self,good=True):
+    def initRank(self,seeds,good=True):
         if good:
             good=1.0
         else :
             good = -1.0
-        print good
+        #print good
         for user in self.users:
             self.Rank[user]=0.0
-            if user in self.seeds:
-                self.Rank[user]=good/len(self.seeds)
+            if user in seeds:
+                self.Rank[user]=good/len(seeds)
     def orderRank(self,reverse=True):
-        global Rank
-        Rank ={}
-        Rank=sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=reverse)
-        print Rank   
+        self.order=sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=reverse)
+        #print Rank   
     def showRank(self):
         print self.Rank     
         
@@ -146,7 +145,7 @@ def loadseeds():
 
 def loadusers():
     users = []
-    file = open('../../../sssddata/spamleusers.txt','r')
+    file = open('../../../sssddata/sampleusers.txt','r')
     while 1:
         line = file.readline()
         if line == '':
@@ -165,10 +164,11 @@ if __name__ == '__main__':
     goodseeds,badseeds = loadseeds()
     seeds = goodseeds + badseeds
     users = loadusers()
-    PR = PageRank(seeds,outnet,innet,users)
-    PR.initRank(False)
-    PR.run(60,-1)
+    PR = PageRank(badseeds,outnet,innet,users)
+    PR.initRank(badseeds)
+    PR.run(60,1)
     PR.orderRank()
+    print PR.order
 
     
     
