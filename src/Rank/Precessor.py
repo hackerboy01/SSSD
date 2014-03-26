@@ -11,20 +11,32 @@ def loadfeature(filename):
     usernames={}
     userfeature=[]
     count = 0
-    while 1:
-        line = file.readline()
-        if line =='':
-            break
-        temp = line.strip().split()
-        userfeature.append([float(temp[x]) for x in range(2,6)]) 
-        userfeature[count].append((float(temp[2])+1)/(float(temp[3])+1))
-        usernames[temp[0]]=count
-        count+=1
+    try:
+        min_max_scaler = pre.MinMaxScaler()
+        while 1:
+            line = file.readline()
+            if line =='':
+                break
+            temp = line.strip().split()
+            usernames[temp[0]]=count
+            temp = [float(temp[x]) for x in range(2,6) ]
+            for x in range(0,len(temp)):
+                if temp[x]==0.0:
+                    temp[x] += 1.0
+            userfeature.append(temp) 
+            userfeature[count].append((float(temp[2])+1)/(float(temp[3])+1))    
+            count+=1
+    except   Exception,e:
+        print Exception,e
+        print count
     file.close()
-    X_train = np.array(userfeature)
+    print count
+    X_train = np.log(np.array(userfeature))
+    #print X_train
     min_max_scaler = pre.MinMaxScaler()
     userfeature = min_max_scaler.fit_transform(X_train)   
-    print 'precess loadfeature!'
+    print 'precess loadfeature!',len(usernames.keys())
+    #print userfeature
     return usernames,userfeature
 
 def getLabel(filename,mode=0):
@@ -60,5 +72,8 @@ def getTrainset(userfeature,usernames,userLabel):
     
 
 if __name__ == '__main__':
-    loadfeature('../../../sssddata/sampleusers.txt')
+    usermap,userfeature=loadfeature('../../../sssddata/sampleusers.txt')
+    userLabel = getLabel('../../../sssddata/finalseeds2.txt',1)
+    Trainset = getTrainset(userfeature, usermap, userLabel)
+    #usermap,userfeature=loadfeature('../../../sssddata/spamleusers.txt')
     pass
