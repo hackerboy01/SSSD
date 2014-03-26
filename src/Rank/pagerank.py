@@ -11,8 +11,8 @@ global Rank
 Rank ={}
 
 class PageRank:
-    def __init__(self, seeds, outnetwork,innetwork,users,Rank={}):
-        self.seeds = seeds
+    def __init__(self,outnetwork,innetwork,users,Rank={}):
+        self.seeds = []
         self.outnetwork = outnetwork
         self.innetwork = innetwork
         self.users = users
@@ -31,12 +31,16 @@ class PageRank:
                 temp = 0.0
                 for inuser in self.innetwork[user]:
                     temp += tempRank[inuser]/len(self.outnetwork[inuser])
-                self.Rank[user] = self.a*temp + self.b*good/len(self.users)
+                if user in self.seeds:
+                    good = 1.0
+                else :
+                    good = 0.0
+                self.Rank[user] = self.a*temp + self.b*good/len(self.seeds)
             for user in self.users:
                 sigma += abs(self.Rank[user]-tempRank[user])
             del tempRank
             count += 1
-           # print count,sigma
+            #print count,sigma,self.showRank()
             if sigma < 1e-7:
                 break
         return self.Rank   
@@ -46,16 +50,19 @@ class PageRank:
             good=1.0
         else :
             good = -1.0
-        #print good
-        for user in self.users:
-            self.Rank[user]=0.0
-            if user in seeds:
-                self.Rank[user]=good/len(seeds)
+        self.seeds=seeds
+        for user in self.users:     
+            self.Rank[user]=0.0  
+            if user in self.seeds:
+                self.Rank[user]=good/len(self.seeds)
     def orderRank(self,reverse=True):
         self.order=sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=reverse)
         #print Rank   
     def showRank(self):
-        print self.Rank     
+        sum = 0
+        for x in self.Rank.keys():
+            sum+=self.Rank[x]   
+        return sum
         
 
 
@@ -118,27 +125,19 @@ def loadnet1(outdegree,indegree):
     return follow, follower
 
 def loadseeds():
-    file = open('../../../sssddata/normalprofile.txt','r')
+    file = open('../../../sssddata/finalseeds.txt','r')
     goodseeds=[]
     badseeds=[]
 
     while 1:
         line = file.readline()
-        if line == '':
+        if line =='':
             break
         temp = line.strip().split()
-        if len(temp) > 1:
-            goodseeds.append(temp[0])
-    file.close()
-    print "goodSeeds Loaded!"
-    file = open('../../../sssddata/spamprofile.txt','r')
-    while 1:
-        line = file.readline()
-        if line == '':
-            break
-        temp = line.strip().split()
-        if len(temp) > 1:
+        if temp[2]=='1':
             badseeds.append(temp[0])
+        else:
+            goodseeds.append(temp[0])
     file.close()
     print "badSeeds Loaded!"
     return goodseeds,badseeds
@@ -164,7 +163,7 @@ if __name__ == '__main__':
     goodseeds,badseeds = loadseeds()
     seeds = goodseeds + badseeds
     users = loadusers()
-    PR = PageRank(badseeds,outnet,innet,users)
+    PR = PageRank(outnet,innet,users)
     PR.initRank(badseeds)
     PR.run(60,1)
     PR.orderRank()

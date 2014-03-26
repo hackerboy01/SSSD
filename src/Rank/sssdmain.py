@@ -21,8 +21,8 @@ if __name__ == '__main__':
     
     goodseeds= [x for x in userLabel.keys() if userLabel[x]==0]
     badseeds= [x for x in userLabel.keys() if userLabel[x]==1]
-    pGood = PR.PageRank(goodseeds,outnet,innet,users)
-    pBad = PR.PageRank(badseeds,innet,outnet,users)
+    pGood = PR.PageRank(outnet,innet,users)
+    pBad = PR.PageRank(innet,outnet,users)
     
     
     
@@ -45,11 +45,11 @@ if __name__ == '__main__':
         Labelset={}
         temptrainset={}
         
+        #处理好的
         pGood.initRank(goodseeds)
         pGood.run(60) 
         pGood.orderRank()     
         tempgood = [ pGood.order[x][0] for x in range(0,int(goodeta*len(pGood.order))) if pGood.order[x][0] not in trainedset ]
-        #print [ userfeature[usermap[tempgood[x]]] for x in range(0,len(tempgood)) ]
         tempclass = c.Predict([ userfeature[usermap[tempgood[x]]] for x in range(0,len(tempgood)) ])
         goodcount=0
         for x in range(0,len(tempclass)):
@@ -57,10 +57,10 @@ if __name__ == '__main__':
                 Labelset[tempgood[x]]=0
                 temptrainset[tempgood[x]]=userfeature[usermap[tempgood[x]]]
                 goodseeds.append(tempgood[x])
-                goodcount+=1
-                
+                goodcount+=1      
         print 'Temp good user %d, add good seeds %d' %(len(tempgood),goodcount)
         
+        #处理坏的
         pBad.initRank(badseeds)
         pBad.run(60)
         pBad.orderRank()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             if tempclass[x] >  badclass:
                 Labelset[tempbad[x]]=0
                 temptrainset[tempbad[x]]=userfeature[usermap[tempbad[x]]]
-                badseeds.append(tempgood[x])
+                badseeds.append(tempbad[x])
                 badcount += 1
         print 'Temp bad user %d, add bad seeds %d' %(len(tempbad),badcount)
         goodeta += 0.01
