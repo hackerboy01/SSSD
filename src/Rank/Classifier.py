@@ -12,16 +12,35 @@ class Classifier:
         self.trainset=[]
         self.label=[]
         self.trainuserid=[]
-        self.clf = svm.SVC(kernel='linear')
+        self.clf = svm.SVC(kernel='rbf')
+        self.weight=[]
+        self.spam = 0
+        self.normal = 0
     def addtrainset(self,training={},Label={}):
         for userid in training.keys():
             self.trainset.append(list(training[userid]))
             self.trainuserid.append(userid)
             self.label.append(Label[userid])
+            if Label[userid]>0.5:
+                self.spam += 1
+            else :
+                self.normal += 1
         print 'training set build!'
     def Training(self):   
          self.clf.fit(self.trainset,self.label)
          print 'Training complete!'
+    def TrainingB(self):   
+        self.weight=[]
+        print self.spam,self.normal,len(self.label)
+        for it in range(0,len(self.label)):
+            if self.label[it]<0.5:
+                self.weight.append(1.0)
+            else :
+                self.weight.append(float(self.normal)/self.spam)
+         
+        self.clf.fit(self.trainset,self.label,sample_weight=self.weight)
+        print self.clf.class_weight
+        print 'TrainingB complete!'         
     def Predict(self,test):
         return self.clf.predict(test)
 
@@ -34,7 +53,7 @@ if __name__ == '__main__':
     Trainset = pre.getTrainset(userfeature, usernames, userLabel)
     c = Classifier('svm')
     c.addtrainset(Trainset,userLabel)
-    c.Training()
+    c.TrainingB()
    # for user in Trainset.keys()
    # print Trainset
     print c.Predict([0.1,1,0.1,0.1,0.2])

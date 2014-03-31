@@ -29,17 +29,22 @@ if __name__ == '__main__':
     pGood = PR.PageRank(outnet,innet,users)
     pBad = PR.PageRank(innet,outnet,users)
 
-    goodeta = 0.02
-    badeta = 0.01
-    goodclass = 0.5
-    badclass = 0.5
+   
     
     trainedset=set()
     trainedset= trainedset | set(userLabel.keys())
     c.addtrainset(Trainset,userLabel)
     print 'Trainset' ,len(c.trainset)
-    c.Training()
+    c.TrainingB()
     count = 0
+    
+    ratio = float(c.spam)/c.normal
+    goodeta = 0.2
+    badeta = goodeta*ratio
+    goodclass = 0.5
+    badclass = 0.5
+    
+    
     try:
         while 1: 
             count += 1    
@@ -55,7 +60,11 @@ if __name__ == '__main__':
             pBad.run(60)
             pBad.orderRank()  
             
-            tempgood = [ pGood.order[x][0] for x in range(0,int(goodeta*len(pGood.order))) if pGood.order[x][0] not in trainedset ]
+            tgood = [ pGood.order[x][0] for x in range(0,int(goodeta*len(pGood.order))) if pGood.order[x][0] not in trainedset ]
+            tbad = [ pBad.order[x][0] for x in range(0,int(badeta*len(pBad.order))) if pBad.order[x][0] not in trainedset]
+            tempgood = list(set(tgood)-set(tbad))
+            tempbad = list(set(tbad)-set(tgood))
+            
             tempclass = c.Predict([ userfeature[usermap[tempgood[x]]] for x in range(0,len(tempgood)) ])
             goodcount=0
             for x in range(0,len(tempclass)):
@@ -69,7 +78,7 @@ if __name__ == '__main__':
             print 'Temp good user %d, add good seeds %d' %(len(tempgood),goodcount)
             
             #deal with bad
-            tempbad = [ pBad.order[x][0] for x in range(0,int(badeta*len(pBad.order))) if pBad.order[x][0] not in trainedset]
+           # tempbad = [ pBad.order[x][0] for x in range(0,int(badeta*len(pBad.order))) if pBad.order[x][0] not in trainedset]
             tempclass = c.Predict([ userfeature[usermap[tempbad[x]]] for x in range(0,len(tempbad)) ])
             badcount = 0
             for x in range(0,len(tempclass)):
@@ -82,14 +91,14 @@ if __name__ == '__main__':
             
             
             goodeta += 0.02
-            badeta += 0.01
+            badeta += 0.02*ratio
             c.addtrainset(temptrainset,Labelset)
             for u in Labelset.keys():
                 outfile.write(str(u)+'\t'+str(Labelset[u])+'\n')
             trainedset = trainedset | set(Labelset.keys())
             print 'Trainset' ,len(c.trainset),len(trainedset)
-            c.Training()
-            if badeta >0.2:
+            c.TrainingB()
+            if badeta >0.5:
                 print 'done'
                 break
    
