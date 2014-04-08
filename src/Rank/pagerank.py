@@ -41,7 +41,7 @@ class PageRank:
             del tempRank
             count += 1
             #print count,sigma,self.showRank()
-            if sigma < 1e-7:
+            if sigma < 1e-8:
                 break
         return self.Rank   
 
@@ -165,9 +165,13 @@ if __name__ == '__main__':
     users = loadusers()
     PR = PageRank(outnet,innet,users)
     PR.initRank(badseeds)
-    PR.run(60,1)
+    PR.run(200,1)
     PR.orderRank()
-    print PR.order
+    fbadorder = open('../../../sssddata/badorder.txt','w')
+    for item in PR.order:
+        if item[0] not in seeds:
+            fbadorder.writelines(str(item[0])+'\n')
+    fbadorder.close()
 
     
     
