@@ -9,6 +9,7 @@ import twitter
 import sys
 import time
 import os
+import cPickle as cp
 
 consumer_key = "m2JZ46Fqku01WXHwiSwfVA"
 consumer_secret = "VR4qrsasxySSVr1CoHIGsnXdSR2ETbtticB6lLzbrs"
@@ -41,32 +42,68 @@ twitter3 = Twitter(auth = auth3)
 
 
 flist = os.listdir("E:/dataset/tweets/")
-fspam = open("../../../sssddata/14wan/14wanlabel.txt", "w")
+ftemp = open("../../../sssddata/14wan/14wanlabel-new1.txt", "r")
+fspam = open("../../../sssddata/14wan/14wanlabel-spam.txt", "w")
+
+fsuspend = open("../../../sssddata/14wan/14spamsuspend.txt", "wb")
+suspend = set()
+
+fnotexist = open("../../../sssddata/14wan/14spamnotexist.txt", "wb")
+notexist = set()
+
+L = 0
+userlabel={}
+for line in ftemp:
+    temp = line.strip().split()
+    userlabel[temp[0]] = int(temp[1])
+    #fspam.write(line)
+    L+=1
+    
+ftemp.close()
+
+print L
+
+count = 0
+for uid in flist:
+    count += 1
+    a=userlabel[uid]
+    if count%10000==0:
+        print count
 
 try:    
     counter = 0
     spamcounter = 0
     tflag = 0
     for uid in flist:
+        counter += 1
+        try:
+            if userlabel[uid]==0:
+                continue
+        except:
+            print counter,uid
+            continue
+##	if counter <= L:
+##            continue
         flag = True
         tm = 10
         while flag:
             try:     
-                if tflag%3==0:
-                    print 'user 1'
+                if tflag%4==0:
+                    #print 'user 1'
                     t = twitter3
-                elif tflag%3 == 1:
-                    print 'user 2'
+                elif tflag%4 == 1:
+                    #print 'user 2'
                     t = twitter2
-                elif tflag%3 == 2:
+                elif tflag%4 == 2:
                     t = twitter1
-                    print 'user 3'
+                    #print 'user 3'
                 else:
                     t = twitter
-                    print 'user 4'
+                    #print 'user 4'
                 profile = t.users.show(user_id = uid)
                 name = profile['screen_name']
                 if name.strip():
+                    print uid
                     fspam.write(uid+'\t0\n')
                 else:
                     fspam.write(uid+'\t1\n')
@@ -74,7 +111,7 @@ try:
                     spamcounter += 1
                 flag = False
             except Exception, e:
-                print >> sys.stderr, 'on_status: Encountered Exception:', e
+                #print >> sys.stderr, 'on_status: Encountered Exception:', e
                 if str(e).find('Rate limit')>0:
                     flag = True
                     print 'sleep',tm
@@ -82,19 +119,24 @@ try:
                     tm= tm*2
                     tflag+=1
                 elif str(e).find('not exist')>0:
-                    fspam.write(uid+'\t1\n')  
+                    notexist.add(uid)
+                    fspam.write(uid+'\t'+str(userlabel[uid])+'\t1\n')  
                     spamcounter += 1
                     flag = False
-                    print 'Sorry, that page does not exist'
-                    print "spam =", spamcounter
+                    #print 'Sorry, that page does not exist'
+                    print uid,userlabel[uid],'1', spamcounter
                 else :
-                    fspam.write(uid+'\t2\n')  
+                    suspend.add(uid)
+                    fspam.write(uid+'\t'+str(userlabel[uid])+'\t2\n')  
                     spamcounter += 1
                     flag = False
-                    print "spam =", spamcounter
-        counter += 1
-        print counter,uid
+                    print uid,userlabel[uid],'2', spamcounter
+        #print counter,uid
 except Exception, e:
      print e   
 finally:
+    cp.dump(suspend,fsuspend)
+    cp.dump(notexist,fnotexist)
+    fsuspend.close()
+    fnotexist.close()
     fspam.close()
