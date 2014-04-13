@@ -60,8 +60,13 @@ def run():
                 except:
                     follower[temp[1]]=set()         
                     follower[temp[1]].add(temp[0]) 
-        biouser = set(follower.keys())&set(follow.keys())
-        print 'bio user',len(set(follower.keys())&set(follow.keys())),len(biouser)    
+        biouser = set(follower.keys())&set(follow.keys()) &user13wan
+        userset &= user13wan
+        print 'bio user',len(userset),len(biouser)    
+        
+        fuserset = open('../../../sssddata/14wan/1-smallnet_userset','wb')
+        pickle.dump(userset,fuserset, protocol=0)
+        fuserset.close()
 
         #去叶子节点，即度为1的节点
         while 1:
@@ -100,12 +105,10 @@ def run():
         finnet.close()
         
         
-        #=======================================================================
-        # ffinal = open('../../../sssddata/14wan/spamset_lastuser.txt','wb')
-        # pickle.dump(spamset,ffinal, protocol=0)
-        # pickle.dump(biouser,ffinal, protocol=0)
-        # ffinal.close()
-        #=======================================================================
+        ffinal = open('../../../sssddata/14wan/1wan/spamset_lastuser','wb')
+        pickle.dump(spamset,ffinal, protocol=0)
+        pickle.dump(biouser,ffinal, protocol=0)
+        ffinal.close()
         
         
         #对网络进行统计
@@ -137,9 +140,7 @@ def run():
              fner.write(str(key)+'\t'+str(dictin[key])+'\n')
         fn.close()
         fner.close()      
-        #=======================================================================
-        # print 'small network loaded!'
-        #=======================================================================
+        print 'network count complete!'
         
         
         
@@ -163,7 +164,6 @@ def run():
     finally:
         #print 'user:\t'+str(usercount),uid
        # temp.close()
-        print 'spamset loaded!',len(spamset)
         print 'small network loaded!',len(userset),len(userset &spamset)
         
         
