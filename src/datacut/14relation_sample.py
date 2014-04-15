@@ -10,7 +10,7 @@ import cPickle as pickle
 
 def run():
     try:
-        allusers=set()
+        
         count=0
         userset=set()
         outfspam = open(r'../../../sssddata/14wan/14spamsuspend','rb')
@@ -20,7 +20,7 @@ def run():
         usershare =set()
         fspam = open(r'../../../sssddata/14wan/14wanlabel-spam.txt','r')
         
-
+        allusers=set()
         fuser = open(r'../../../sssddata/users.txt','r')
         for line in fuser:
             temp = line.strip().split()
@@ -32,6 +32,9 @@ def run():
         user13wan=user14wan & allusers 
         print len(allusers),len(user14wan),len(user14wan & allusers)
         spamset = spamset & user13wan
+        ffinal = open('../../../sssddata/14wan/1wan/spamset','wb')
+        pickle.dump(spamset,ffinal, protocol=0)
+        ffinal.close()
         print 'spamset loaded! '   
         del allusers 
         del user14wan
@@ -48,7 +51,15 @@ def run():
                 print count,len(userset)
             temp = line.strip().split()
             if temp[0] in spamset or temp[1] in spamset:
-                userset.update(temp)  
+                if temp[0] in user13wan and temp[1] in user13wan:
+                    userset.update(temp)        
+        print len(userset)
+        userset &= user13wan
+      
+        fnetwork.seek(0)
+        for line in fnetwork:
+            temp = line.strip().split()
+            if temp[0] in userset and temp[1] in userset:
                 fsmallnet.write(line)
                 try:
                     follow[temp[0]].add(temp[1])
@@ -61,54 +72,71 @@ def run():
                     follower[temp[1]]=set()         
                     follower[temp[1]].add(temp[0]) 
         biouser = set(follower.keys())&set(follow.keys()) &user13wan
-        userset &= user13wan
-        print 'bio user',len(userset),len(biouser)    
+        print 'bio user',len(userset),len(biouser) 
+         
+        
+        # 提取profile
+        #=======================================================================
+        # fuser = open(r'../../../sssddata/users.txt','r')
+        # fusersmall = open(r'../../../sssddata/14wan/user_smallnet.txt','w')
+        # for line in fuser:
+        #     temp = line.strip().split()
+        #     if len(temp)>0:
+        #         if temp[0] in userset:
+        #             fusersmall.write(line)
+        # fusersmall.close()
+        # fuser.close() 
+        #=======================================================================
         
         fuserset = open('../../../sssddata/14wan/1-smallnet_userset','wb')
         pickle.dump(userset,fuserset, protocol=0)
         fuserset.close()
 
         #去叶子节点，即度为1的节点
-        while 1:
-            follower.clear()
-            follow.clear()
-            fnetwork.seek(0)
-            for line in fnetwork:
-                count +=1
-                temp = line.strip().split()
-                if temp[0] in biouser and temp[1] in biouser:
-                    userset.update(temp)  
-                    try:
-                        follow[temp[0]].add(temp[1])
-                    except:
-                        follow[temp[0]]=set()    
-                        follow[temp[0]].add(temp[1])  
-                    try:
-                        follower[temp[1]].add(temp[0])
-                    except:
-                        follower[temp[1]]=set()         
-                        follower[temp[1]].add(temp[0]) 
-            biouser = set(follower.keys())&set(follow.keys())
-            print 'bio user',len(biouser),len(follow.keys()),len(follower.keys())  
-            if len(biouser)==len(follow.keys()) and len(biouser)==len(follower.keys()):
-                break     
-        spamset = biouser & spamset
-        print 'last users:',len(biouser),len(spamset)
-        #输出新的网络
-        foutnet = open(r'../../../sssddata/14wan/1-outnet.txt','w')
-        finnet = open(r'../../../sssddata/14wan/1-innet.txt','w')
-        for user in follow.keys():
-            foutnet.write(user+'\t'+'\t'.join(list(follow[user]))+'\n')
-        for user in follower.keys():
-            finnet.write(user+'\t'+'\t'.join(list(follower[user]))+'\n')
-        foutnet.close()
-        finnet.close()
+        #=======================================================================
+        # while 1:
+        #     follower.clear()
+        #     follow.clear()
+        #     fnetwork.seek(0)
+        #     for line in fnetwork:
+        #         count +=1
+        #         temp = line.strip().split()
+        #         if temp[0] in biouser and temp[1] in biouser:
+        #             userset.update(temp)  
+        #             try:
+        #                 follow[temp[0]].add(temp[1])
+        #             except:
+        #                 follow[temp[0]]=set()    
+        #                 follow[temp[0]].add(temp[1])  
+        #             try:
+        #                 follower[temp[1]].add(temp[0])
+        #             except:
+        #                 follower[temp[1]]=set()         
+        #                 follower[temp[1]].add(temp[0]) 
+        #     biouser = set(follower.keys())&set(follow.keys())
+        #     print 'bio user',len(biouser),len(follow.keys()),len(follower.keys())  
+        #     if len(biouser)==len(follow.keys()) and len(biouser)==len(follower.keys()):
+        #         break     
+        # spamset = biouser & spamset
+        # print 'last users:',len(biouser),len(spamset)
+        # #输出新的网络
+        # foutnet = open(r'../../../sssddata/14wan/1-outnet.txt','w')
+        # finnet = open(r'../../../sssddata/14wan/1-innet.txt','w')
+        # for user in follow.keys():
+        #     foutnet.write(user+'\t'+'\t'.join(list(follow[user]))+'\n')
+        # for user in follower.keys():
+        #     finnet.write(user+'\t'+'\t'.join(list(follower[user]))+'\n')
+        # foutnet.close()
+        # finnet.close()
+        #=======================================================================
         
         
-        ffinal = open('../../../sssddata/14wan/1wan/spamset_lastuser','wb')
-        pickle.dump(spamset,ffinal, protocol=0)
-        pickle.dump(biouser,ffinal, protocol=0)
-        ffinal.close()
+        #=======================================================================
+        # ffinal = open('../../../sssddata/14wan/1wan/spamset_lastuser','wb')
+        # pickle.dump(spamset,ffinal, protocol=0)
+        # pickle.dump(biouser,ffinal, protocol=0)
+        # ffinal.close()
+        #=======================================================================
         
         
         #对网络进行统计

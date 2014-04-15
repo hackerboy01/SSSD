@@ -93,5 +93,74 @@ def run():
     cp.dump(usermetric, fmetric, protocol=0)
     fmetric.close()
 
+    
+
+
+
+def extract():
+    s = ['profile.txt','content.txt','graph.txt','neighbor.txt']
+    dir = r'E:/dataset/sssddata/14wan/feature/'
+    userset = loaduser('../../../sssddata/14wan/feature/userset')
+    spamset = loaduser('../../../sssddata/14wan/feature/14spamsuspend')
+    print len(userset),len(spamset)
+    metric={}
+    for name in s:
+        fname = open(dir+name,'r')
+        for line in fname:
+            temp = line.strip().split()
+            try:
+                metric[temp[0]] += temp[1:]
+            except:
+                metric[temp[0]] = temp[1:]
+        fname.close()
+    fout = open('../../../sssddata/14wan/feature/metric.arff','w')
+    fout.write('@relation\t metric\n\n')
+    
+    fout.write('@attribute friends numeric\n')
+    fout.write('@attribute follower numeric\n')
+    fout.write('@attribute status numeric\n')
+    fout.write('@attribute ff_ratio numeric\n')
+    fout.write('@attribute age numeric\n')
+    fout.write('@attribute following_rate numeric\n')
+    fout.write('@attribute tweet_rate numeric\n')
+    
+    fout.write('@attribute url_ratio numeric\n')
+    fout.write('@attribute oneurl_ratio numeric\n')
+    fout.write('@attribute mention_raio numeric\n')
+    fout.write('@attribute hash_ratio numeric\n')
+    fout.write('@attribute ret_ratio numeric\n')
+    fout.write('@attribute interval numeric\n')
+    fout.write('@attribute tweet_per_day numeric\n')
+    
+    fout.write('@attribute bi-links numeric\n')
+    fout.write('@attribute bi-links_raio numeric\n')
+    fout.write('@attribute Clustering_Coefficient numeric\n')
+    fout.write('@attribute Eccentricity numeric\n')
+    fout.write('@attribute Closeness numeric\n')
+    fout.write('@attribute Betweenness numeric\n')
+    
+    fout.write('@attribute avg_nbor_followers numeric\n')
+    fout.write('@attribute avg_nbor_tweets numeric\n')
+    fout.write('@attribute fings2_median_followers numeric\n')
+    fout.write('@attribute Defective {Y,N}\n\n')
+    
+    fout.write('@data\n')    
+    for uid in metric.keys():
+        if uid in spamset:
+            fout.write('\t'.join(metric[uid])+'\tY\n')
+        else:
+            fout.write('\t'.join(metric[uid])+'\tN\n')
+    fout.close()    
+    
+        
+def loaduser(file):
+    f = open(file,'rb')
+    userset = cp.load(f)
+    f.close()
+    return userset
+
+
+
 if __name__ == '__main__':
-    run()
+    #run()
+    extract()
