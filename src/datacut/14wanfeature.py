@@ -14,8 +14,8 @@ global usercount
 
 def timedelta(startdate,curtime):
     #starttime = datetime.datetime.strptime(startdate, '%Y-%m-%d %H:%M:%S')
-    starttime = datetime.datetime.strptime(startdate, '%a %b %d %H:%M:%S %Y')
-    d = datetime.datetime.strptime(curtime,'%a %b %d %H:%M:%S %Y')
+    starttime = datetime.strptime(startdate, '%a %b %d %H:%M:%S %Y')
+    d = datetime.strptime(curtime,'%a %b %d %H:%M:%S %Y')
     delta= d - starttime
     return delta.total_seconds()
 
@@ -127,17 +127,13 @@ def getcontentfeature(infilename,outfile,uid):
     infile.close()
     return list
        
-def getprofile():
+def getprofile(file,userset):
     
     
     ## feature: friends follower status ff_ratio age following_rate tweet_rate
-    file=open(r'../../../sssddata/14wan/feature/userset','rb')
-    userset = pickle.load(file)
-    print len(userset)
-    file.close()
     
     fpro = open(r'../../../sssddata/14wan/feature/user_smallnet.txt','r')
-    fout = open(r'../../../sssddata/14wan/feature/profile.txt','w')
+    fout = open(file,'w')
     
     today = date(2011,8,1)
     for line in fpro:
@@ -172,18 +168,14 @@ def getprofile():
     fout.close()       
            
 
-def runcontent():
+def runcontent(file,userset):
     try:
         global urlcount
         global usercount
         urlcount=0
         usercount=0
         infile_dir = r'E:\dataset\tweets'
-        fcontent=open(r'../../../sssddata/14wan/feature/content.txt','w')
-        file=open(r'../../../sssddata/14wan/feature/userset','rb')
-        userset = pickle.load(file)
-        print len(userset)
-        file.close()
+        fcontent=open(file,'w')
         for uid in userset:
             content=getcontentfeature(infile_dir, fcontent, uid)
             if usercount%100 == 0:
@@ -193,7 +185,7 @@ def runcontent():
         print 'user:\t'+str(usercount),uid
         fcontent.close()
     
-def getGraph():
+def getGraph(file,user):
     # bi-links
     # bi-links_raio
     # Clustering_Coefficient
@@ -204,20 +196,22 @@ def getGraph():
     idfeature = loadgraphfeature('../../../sssddata/14wan/feature/graph/graphfeature.csv')
     graph = {}
     follow, follower = loadnet('../../../sssddata/14wan/1-smallnet.txt')
-    fgraph = open('../../../sssddata/14wan/feature/graph.txt','w')
+    fgraph = open(file,'w')
     for uid in follow.keys():
-        if uid in follower.keys():
-            bio = len( follow[uid] & follower[uid] )
-        else:
-            bio = 0
-        graph[uid] = [ str(bio), str( float(bio) / len(follow[uid]) ) ]
-        graph[uid] += idfeature[ int(str2id[uid]) ]
-        fgraph.write(uid+'\t'+'\t'.join(graph[uid])+'\n')
+        if uid in user:
+            if uid in follower.keys():
+                bio = len( follow[uid] & follower[uid] )
+            else:
+                bio = 0
+            graph[uid] = [ str(bio), str( float(bio) / len(follow[uid]) ) ]
+            graph[uid] += idfeature[ int(str2id[uid]) ]
+            fgraph.write(uid+'\t'+'\t'.join(graph[uid])+'\n')
     for uid in set(follower.keys())-set(follow.keys()):
-        bio = 1
-        graph[uid] = [ '1','1']
-        graph[uid] += idfeature[ int(str2id[uid]) ]
-        fgraph.write(uid+'\t'+'\t'.join(graph[uid])+'\n')
+        if uid in user:
+            bio = 1
+            graph[uid] = [ '1','1']
+            graph[uid] += idfeature[ int(str2id[uid]) ]
+            fgraph.write(uid+'\t'+'\t'.join(graph[uid])+'\n')
     fgraph.close()
     print 'get graph feature'
         
@@ -262,7 +256,7 @@ def loadnet(file):
     
     return follow,follower
 
-def getNbor():
+def getNbor(file,user):
     #avg_nbor_followers
     #avg_nbor_tweets
     #fings2_median_followers
@@ -273,36 +267,54 @@ def getNbor():
     Nr_status = {}
     for line in fuser:
         temp = line.strip().split()
-        Nr_follow[temp[0]] = temp[2]
-        Nr_follower[temp[0]] = temp[3]
-        Nr_status[temp[0]] = temp[4]
+        if temp[0] in user:
+            Nr_follow[temp[0]] = temp[2]
+            Nr_follower[temp[0]] = temp[3]
+            Nr_status[temp[0]] = temp[4]
     fuser.close()
     
-    fnbor = open('../../../sssddata/14wan/feature/neighbor.txt','w')
+    fnbor = open(file,'w')
     for uid in follow.keys():
-        nrfor = [ int(Nr_follower[u]) for u in follow[uid]  ]
-        nrfor.sort()
-        avg_for = float(sum(nrfor))/len(nrfor)
-        
-        nrtwt = [int(Nr_status[u]) for u in follow[uid] ]
-        nrtwt.sort()
-        avg_twt = float(sum(nrtwt))/len(nrtwt)
-        
-        m = len(nrfor)/2
-        f2mnf = float(Nr_follow[uid]) / nrfor[m]
-        fnbor.write('%s\t%s\t%s\t%s\n' %( uid, str(avg_for),str(avg_twt),str(f2mnf) ) )
+        if uid in user:
+            nrfor = [ int(Nr_follower[u]) for u in follow[uid] if u in user ]
+            nrfor.sort()
+            if len(nrfor)==0:
+                avg_for = Nr_follower[uid]
+            else:
+                avg_for = float(sum(nrfor))/len(nrfor)
+            
+            nrtwt = [int(Nr_status[u]) for u in follow[uid] if u in user]
+            nrtwt.sort()
+            if len(nrtwt)==0:
+                avg_twt = Nr_status[uid]
+            else:
+                avg_twt = float(sum(nrtwt))/len(nrtwt)
+            
+            if len(nrfor)==0:
+                f2mnf = float(Nr_follow[uid])/float(Nr_follower[uid])
+            else:
+                m = len(nrfor)/2
+                f2mnf = float(Nr_follow[uid]) / nrfor[m]
+            fnbor.write('%s\t%s\t%s\t%s\n' %( uid, str(avg_for),str(avg_twt),str(f2mnf) ) )
         
     for uid in set(follower.keys())-set(follow.keys()):
-        avg_for = Nr_follower[uid]
-        avg_twt = Nr_status[uid]
-        f2mnf = float(Nr_follow[uid])/float(Nr_follower[uid])
-        fnbor.write('%s\t%s\t%s\t%s\n' %( uid, str(avg_for),str(avg_twt),str(f2mnf) ) )
+        if uid in user:
+            avg_for = Nr_follower[uid]
+            avg_twt = Nr_status[uid]
+            f2mnf = float(Nr_follow[uid])/float(Nr_follower[uid])
+            fnbor.write('%s\t%s\t%s\t%s\n' %( uid, str(avg_for),str(avg_twt),str(f2mnf) ) )
     fnbor.close()
     print 'neighbor feature geted'
 
 if __name__=='__main__':
-    #runcontent()
-    #getprofile()
-    #getGraph()
-    getNbor()
+    user='../../../sssddata/14wan/feature/testset'
+    fbad = open(user,'rb')
+    userset = pickle.load(fbad)
+    fbad.close()
+    print len(userset)
+    
+    runcontent(r'../../../sssddata/14wan/feature/2-content.txt',userset)
+    #getprofile(r'../../../sssddata/14wan/feature/2-profile.txt',userset)
+    #getGraph('../../../sssddata/14wan/feature/2-graph.txt',userset)
+    #getNbor('../../../sssddata/14wan/feature/2-neighbor.txt',userset)
     

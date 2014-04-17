@@ -46,6 +46,12 @@ def run():
     spamset =pickle.load(outfspam)
     print len(spamset)
     outfspam.close()
+    
+    outfspam = open(r'../../../sssddata/14wan/14spamnotexist','rb')
+    nouser =pickle.load(outfspam)
+    print len(nouser)
+    outfspam.close()
+    
      
     userset= set()
     fnetwork=open(r'../../../sssddata/14wan/newnetworks','r')
@@ -58,7 +64,7 @@ def run():
         temp = line.strip().split()
         if temp[0] in spamset or temp[1] in spamset:
             userset.update(temp)        
-    print len(userset)
+    print len(userset),'no exist',len(userset&nouser)
     fuser = open('../../../sssddata/14wan/feature/userset','wb')
     pickle.dump(userset, fuser, protocol=0)
     fuser.close()
@@ -116,11 +122,27 @@ def run():
          if len(biouser)==len(follow.keys()) and len(biouser)==len(follower.keys()):
              break     
     spamset = biouser & spamset
-    print 'last users:',len(biouser),len(spamset)
+    print 'last users:',len(biouser),len(spamset),len(biouser&nouser)
      
      
-     
-    fsmallnet = open(r'../../../sssddata/14wan/1-smallnet-bio.txt','w')
+    ########################### 
+    usershare=set()
+    fshare = open(r'../../../sssddata/14wan/14wanurlshare.txt','r')
+    count = 0
+    for line in fshare:
+        count +=1
+        #if count %100000 ==0:
+           # print count,len(usershare)
+        temp = line.strip().split()
+        if temp[0] in spamset or temp[1] in spamset:
+            #if float(temp[2])>0.001:
+                #furlnet.write(line)  
+                usershare.update(temp[0:2])  
+    userlast=biouser & usershare  
+    biouser = userlast | spamset
+    fshare.close()
+    ################################### 
+    fsmallnet = open(r'../../../sssddata/14wan/rank/2-smallnet-bio.txt','w')
     fnetwork.seek(0)
     for line in fnetwork:
         temp = line.strip().split()
@@ -186,36 +208,38 @@ def run():
      
     
     
-    usershare=set()
-    fshare = open(r'../../../sssddata/14wan/14wanurlshare.txt','r')
-    furlnet = open(r'../../../sssddata/14wan/urlsharenet.txt','w')
-    count = 0
-    for line in fshare:
-        count +=1
-        #if count %100000 ==0:
-           # print count,len(usershare)
-        temp = line.strip().split()
-        if temp[0] in spamset or temp[1] in spamset:
-            #if float(temp[2])>0.001:
-                #furlnet.write(line)  
-                usershare.update(temp[0:2])  
-    userlast=biouser & usershare 
-    print len(userlast),len(spamset&userlast),len(spamset&usershare)
-    fshare.seek(0)   
-    usershare.clear()
-    for line in fshare:
-        count +=1
-        #if count %100000 ==0:
-           # print count,len(usershare)
-        temp = line.strip().split()
-        if temp[0] in userlast and temp[1] in userlast:
-           # if float(temp[2])>0.001:
-                furlnet.write(line)  
-                usershare.update(temp[0:2])  
-    #userlast=biouser & usershare 
-    print len(usershare)
-    furlnet.close()
-    fshare.close()
+    #===========================================================================
+    # usershare=set()
+    # fshare = open(r'../../../sssddata/14wan/14wanurlshare.txt','r')
+    # furlnet = open(r'../../../sssddata/14wan/urlsharenet.txt','w')
+    # count = 0
+    # for line in fshare:
+    #     count +=1
+    #     #if count %100000 ==0:
+    #        # print count,len(usershare)
+    #     temp = line.strip().split()
+    #     if temp[0] in spamset or temp[1] in spamset:
+    #         #if float(temp[2])>0.001:
+    #             #furlnet.write(line)  
+    #             usershare.update(temp[0:2])  
+    # userlast=biouser & usershare 
+    # print len(userlast),len(spamset&userlast),len(spamset&usershare)
+    # fshare.seek(0)   
+    # usershare.clear()
+    # for line in fshare:
+    #     count +=1
+    #     #if count %100000 ==0:
+    #        # print count,len(usershare)
+    #     temp = line.strip().split()
+    #     if temp[0] in userlast and temp[1] in userlast:
+    #        # if float(temp[2])>0.001:
+    #             furlnet.write(line)  
+    #             usershare.update(temp[0:2])  
+    # #userlast=biouser & usershare 
+    # print len(usershare)
+    # furlnet.close()
+    # fshare.close()
+    #===========================================================================
     
     
     

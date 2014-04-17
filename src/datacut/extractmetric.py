@@ -100,7 +100,7 @@ def run():
 def extract():
     s = ['profile.txt','content.txt','graph.txt','neighbor.txt']
     dir = r'E:/dataset/sssddata/14wan/feature/'
-    userset = loaduser('../../../sssddata/14wan/feature/userset')
+    userset = loaduser('../../../sssddata/14wan/feature/testset')
     spamset = loaduser('../../../sssddata/14wan/feature/14spamsuspend')
     print len(userset),len(spamset)
     metric={}
@@ -108,12 +108,13 @@ def extract():
         fname = open(dir+name,'r')
         for line in fname:
             temp = line.strip().split()
-            try:
-                metric[temp[0]] += temp[1:]
-            except:
-                metric[temp[0]] = temp[1:]
+            if temp[0] in userset:
+                try:
+                    metric[temp[0]] += temp[1:]
+                except:
+                    metric[temp[0]] = temp[1:]
         fname.close()
-    fout = open('../../../sssddata/14wan/feature/metric.arff','w')
+    fout = open('../../../sssddata/14wan/feature/2-metric.arff','w')
     fout.write('@relation\t metric\n\n')
     
     fout.write('@attribute friends numeric\n')
