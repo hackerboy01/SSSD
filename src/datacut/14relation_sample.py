@@ -27,7 +27,8 @@ def run():
             if len(temp)>0:
                 allusers.add(temp[0])
         fuser.close()        
-                
+
+        #做交集        
         user14wan = set(os.listdir(r'E:/dataset/tweets/'))       
         user13wan=user14wan & allusers 
         print len(allusers),len(user14wan),len(user14wan & allusers)
@@ -43,19 +44,20 @@ def run():
         #加载大网络
         follow={}
         follower={} 
-        fnetwork=open(r'../../../sssddata/14wan/newnetworks','r')
-        fsmallnet = open(r'../../../sssddata/14wan/1-smallnet.txt','w')
+        fnetwork=open(r'../../../sssddata/14wan/newnetworks','r')#网络文件
+        fsmallnet = open(r'../../../sssddata/14wan/1-smallnet.txt','w')#输出文件
         for line in fnetwork:
             count +=1
             if count %100000 ==0:
                 print count,len(userset)
             temp = line.strip().split()
+            # 只要关系中有一个是spam，将两个用户加到用户候选集合userset中
             if temp[0] in spamset or temp[1] in spamset:
                 if temp[0] in user13wan and temp[1] in user13wan:
                     userset.update(temp)        
         print len(userset)
         userset &= user13wan
-      
+        #重新扫描网络，将关系中两个都在userset中的关系提取到新文件中 
         fnetwork.seek(0)
         for line in fnetwork:
             temp = line.strip().split()
@@ -192,7 +194,7 @@ def run():
     finally:
         #print 'user:\t'+str(usercount),uid
        # temp.close()
-        print 'small network loaded!',len(userset),len(userset &spamset)
+        #print 'small network loaded!',len(userset),len(userset &spamset)
         
         
         fnetwork.close()

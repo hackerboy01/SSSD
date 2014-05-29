@@ -125,30 +125,32 @@ def run():
     print 'last users:',len(biouser),len(spamset),len(biouser&nouser)
      
      
-    ########################### 
-    usershare=set()
-    fshare = open(r'../../../sssddata/14wan/14wanurlshare.txt','r')
-    count = 0
-    for line in fshare:
-        count +=1
-        #if count %100000 ==0:
-           # print count,len(usershare)
-        temp = line.strip().split()
-        if temp[0] in spamset or temp[1] in spamset:
-            #if float(temp[2])>0.001:
-                #furlnet.write(line)  
-                usershare.update(temp[0:2])  
-    userlast=biouser & usershare  
-    biouser = userlast | spamset
-    fshare.close()
-    ################################### 
-    fsmallnet = open(r'../../../sssddata/14wan/rank/2-smallnet-bio.txt','w')
-    fnetwork.seek(0)
-    for line in fnetwork:
-        temp = line.strip().split()
-        if temp[0] in biouser and temp[1] in biouser:
-            fsmallnet.write(line)
-    fsmallnet.close()
+    #===========================================================================
+    # ########################### 
+    # usershare=set()
+    # fshare = open(r'../../../sssddata/14wan/14wanurlshare.txt','r')
+    # count = 0
+    # for line in fshare:
+    #     count +=1
+    #     #if count %100000 ==0:
+    #        # print count,len(usershare)
+    #     temp = line.strip().split()
+    #     if temp[0] in spamset or temp[1] in spamset:
+    #         #if float(temp[2])>0.001:
+    #             #furlnet.write(line)  
+    #             usershare.update(temp[0:2])  
+    # userlast=biouser & usershare  
+    # biouser = userlast | spamset
+    # fshare.close()
+    # ################################### 
+    # fsmallnet = open(r'../../../sssddata/14wan/rank/2-smallnet-bio.txt','w')
+    # fnetwork.seek(0)
+    # for line in fnetwork:
+    #     temp = line.strip().split()
+    #     if temp[0] in biouser and temp[1] in biouser:
+    #         fsmallnet.write(line)
+    # fsmallnet.close()
+    #===========================================================================
      
      
      

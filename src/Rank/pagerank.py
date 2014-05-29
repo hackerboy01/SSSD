@@ -10,17 +10,23 @@ import cPickle as pickle
 global Rank
 Rank ={}
 
+
+
 class PageRank:
-    def __init__(self,outnetwork={},innetwork={},users=set(),Rank={}):
+    def __init__(self,outnetwork={},innetwork={},users=set(),Rank={},rankname=''):
         self.seeds = set()
         self.outnetwork = outnetwork
         self.innetwork = innetwork
         self.users = users
-        self.Rank=Rank
+        if len(Rank.keys())==0:
+            self.Rank={}
+        else:
+            self.Rank=Rank
         self.a = 0.85
         self.b = 1-self.a
         self.order=[]
         self.netweight={}
+        self.rankname=rankname
         
     def run(self,iteration=1,good=1.0,TrustRank=False):
         #self.initRank()
@@ -63,6 +69,7 @@ class PageRank:
             count += 1
             if __name__ == '__main__':
                 print count,sigma#,self.showRank()
+            
             if sigma < 1e-8:
                 break
         return self.Rank   
@@ -158,15 +165,12 @@ class PageRank:
             self.Rank[user]=0.0  
             if user in self.seeds:
                 self.Rank[user]=good/len(self.seeds)
-        print self.showRank()
+        #print self.showRank()
     def orderRank(self,reverse=True):
         self.order=sorted(self.Rank.iteritems(), key=lambda pair: pair[1], reverse=reverse)  
         return self.order       
     def showRank(self):
-        sum = 0
-        for x in self.Rank.keys():
-            sum+=self.Rank[x]   
-        return sum
+        return self.Rank
         
 
 
@@ -302,14 +306,14 @@ def netweight(filename):
     return network
     
     
-def runTrustrank():    
-    tao = 50
+def runTrustrank(netname = '1-smallnet-bio.txt' ,tao = 200):   
+    #netname = '2-smallnet-bio.txt' 
     fbad = open('../../../sssddata/14wan/spamset_bio','rb')
     spamset = pickle.load(fbad)
     fbad.close()
-    print len(spamset)
+    #print len(spamset)
     PR=PageRank()
-    PR.initNet('../../../sssddata/14wan/1-smallnet-bio.txt',reverse=True)
+    PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=True)
     PR.initRank(spamset)
     PR.run(100, good=1.0, TrustRank=False)
     order = PR.orderRank()
@@ -329,12 +333,12 @@ def runTrustrank():
             pass
     ftest.close()    
     
-    PR.initNet('../../../sssddata/14wan/1-smallnet-bio.txt',reverse=False)
+    PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
     PR.initRank(seeds)
     PR.run(100, good=1.0, TrustRank=True)
     order = PR.orderRank()
     
-    ftest = open('../../../sssddata/14wan/rank/Trustrank_seeds'+str(tao),'w')
+    ftest = open('../../../sssddata/14wan/rank/2-Trustrank_seeds'+str(tao),'w')
     for item in order:
         uid,pr=item
         if uid in spamset:
@@ -348,18 +352,31 @@ def runTrustrank():
             else:
                 ftest.write(str(uid)+'\t'+str(pr)+'\n')
     ftest.close()    
+    return PR.showRank().copy()
  
-def runAntiTrustrank():    
-    tao = 200
-    netname = '2-smallnet-bio.txt'
+def runPageRank(netname = '1-smallnet-bio.txt',tao = 200):
     fbad = open('../../../sssddata/14wan/spamset_bio','rb')
     spamset = pickle.load(fbad)
     fbad.close()
-    print len(spamset)
+    #print len(spamset)
     PR=PageRank()
     PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
     PR.initRank(spamset)
-    print len(PR.users)
+    #print len(PR.users)
+    PR.run(100, good=1.0, TrustRank=False)    
+    return PR.showRank().copy()
+    
+def runAntiTrustrank(netname = '1-smallnet-bio.txt',tao = 200):    
+    
+    #netname = '2-smallnet-bio.txt'
+    fbad = open('../../../sssddata/14wan/spamset_bio','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    #print len(spamset)
+    PR=PageRank()
+    PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
+    PR.initRank(spamset)
+    #print len(PR.users)
     PR.run(100, good=1.0, TrustRank=False)
     order = PR.orderRank()
     
@@ -379,9 +396,12 @@ def runAntiTrustrank():
     ftest.close()    
     
     PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=True)
-    PR.initRank(seeds)
+    PR.initRank(spamset)
     PR.run(100, good=1.0, TrustRank=True)
     order = PR.orderRank()
+    
+    
+    
     
     ftest = open('../../../sssddata/14wan/rank/2-anti-Trustrank_seeds'+str(tao),'w')
     for item in order:
@@ -394,6 +414,135 @@ def runAntiTrustrank():
         else:
             ftest.write(str(uid)+'\t'+str(pr)+'\n')
     ftest.close()    
+    return PR.showRank().copy(),seeds
+
+def runAntiTrustrank_new(netname = '1-smallnet-bio.txt',tao = 200):    
+    
+    #netname = '2-smallnet-bio.txt'
+    fbad = open('../../../sssddata/14wan/spamset_bio','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    #print len(spamset)
+    PR=PageRank()
+    PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
+    PR.initRank(spamset)
+    #print len(PR.users)
+    PR.run(100, good=1.0, TrustRank=False)
+    order = PR.orderRank()
+    
+    #===========================================================================
+    # ftest = open('../../../sssddata/14wan/rank/pagerank','w')
+    # count  = 0
+    # seeds=set()
+    # for item in order:
+    #     uid,pr=item
+    #     if uid in spamset:
+    #         count += 1
+    #         #if count < tao:
+    #         seeds.add(uid)
+    #         ftest.write(str(uid)+'\t'+str(pr)+'\tspam\n')
+    #     else:
+    #         ftest.write(str(uid)+'\t'+str(pr)+'\n')
+    #         pass
+    # ftest.close()    
+    #===========================================================================
+    
+    PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=True)
+    PR.initRank(spamset)
+    PR.run(100, good=1.0, TrustRank=True)
+    order = PR.orderRank()
+    
+    fin = open('../../../sssddata/14wan/newspam_4times','rb')
+    newspam = pickle.load(fin)
+    fin.close()
+    
+    
+    
+    ftest = open('../../../sssddata/14wan/rank/3-anti-Trustrank_seeds785','w')
+    for item in order:
+        uid,pr=item
+        if uid in spamset:
+            #if uid in seeds:
+            ftest.write(str(uid)+'\t'+str(pr)+'\tspam\tspam\n')
+        elif uid in newspam:
+                ftest.write(str(uid)+'\t'+str(pr)+'\tspam\n')
+        else:
+            ftest.write(str(uid)+'\t'+str(pr)+'\n')
+    ftest.close()    
+    return PR.showRank().copy()
+ 
+ 
+def SpamRank():
+    tao = 800
+    netname = '1-smallnet-bio.txt'
+    fbad = open('../../../sssddata/14wan/spamset_bio','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    antiRank,seeds = runAntiTrustrank(netname = netname , tao = tao)
+    print "anti Rank!"
+    
+    #trustRank = runTrustrank(netname = netname , tao = tao)
+    trustRank = runPageRank(netname = netname , tao = tao)
+    print "trust rank"
+    print len(antiRank.keys()),len(trustRank.keys())
+    spamrank={}
+    for user in antiRank.keys():
+        if trustRank[user]==0:
+            print user
+        #spamrank[user]=float(antiRank[user])/float(trustRank[user])
+        spamrank[user]=float(antiRank[user])-float(trustRank[user])
+        #print antiRank[user],trustRank[user],spamrank[user]
+    order = sorted(spamrank.iteritems(), key=lambda pair: pair[1], reverse=False)  
+    ftest = open('../../../sssddata/14wan/rank/2-spamrank_linear_seeds'+str(tao),'w')
+    for item in order:
+        uid,pr=item
+        if uid in spamset:
+            if uid in seeds:
+                ftest.write(str(uid)+'\t'+str(pr)+'\tspam\tspam\n')
+            else:
+                ftest.write(str(uid)+'\t'+str(pr)+'\tspam\n')
+        else:
+            ftest.write(str(uid)+'\t'+str(pr)+'\n')
+    ftest.close()    
+def SpamRank_new():
+    tao = 800
+    netname = '1-smallnet-bio.txt'
+    fbad = open('../../../sssddata/14wan/spamset_bio','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    antiRank = runAntiTrustrank_new(netname = netname , tao =tao)
+    print "anti Rank!"
+    
+    trustRank = runTrustrank(netname = netname , tao = tao)
+    #trustRank = runPageRank(netname = netname , tao = tao)
+    print "trust rank"
+    print len(antiRank.keys()),len(trustRank.keys())
+    spamrank={}
+    for user in antiRank.keys():
+        if trustRank[user]==0:
+            print user
+        #spamrank[user]=float(antiRank[user])/float(trustRank[user])
+        spamrank[user]=float(antiRank[user])-float(trustRank[user])
+        #print antiRank[user],trustRank[user],spamrank[user]
+    order = sorted(spamrank.iteritems(), key=lambda pair: pair[1], reverse=True)  
+    
+    fin = open('../../../sssddata/14wan/newspam_4times','rb')
+    newspam = pickle.load(fin)
+    fin.close()
+    
+    ftest = open('../../../sssddata/14wan/rank/2-spamrank_linear_seeds'+str(tao),'w')
+    for item in order:
+        uid,pr=item
+        if uid in spamset:
+           # if uid in seeds:
+            ftest.write(str(uid)+'\t'+str(pr)+'\tspam\tspam\n')
+        elif uid in newspam:
+                ftest.write(str(uid)+'\t'+str(pr)+'\tspam\n')
+        else:
+            ftest.write(str(uid)+'\t'+str(pr)+'\n')
+    ftest.close()    
+    
+    
     
     
 if __name__ == '__main__':
@@ -425,8 +574,9 @@ if __name__ == '__main__':
     # print len(users)
     # PR=PageRank(outnetwork = outnet,innetwork = innet,users=users)
     #===========================================================================   
-    
-    runAntiTrustrank()
+   # SpamRank_new()
+    runTrustrank()
+    #runAntiTrustrank_new()
     #network=netweight('../../../sssddata/14wan/rank/urlsharenet.txt')
     #print len(network.keys())
 

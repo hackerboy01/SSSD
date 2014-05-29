@@ -5,15 +5,29 @@ Created on 2014-3-18
 '''
 import Precessor as pre
 from sklearn import svm
+from sklearn import tree
+from sklearn.ensemble import RandomForestClassifier as RFC
+import pagerank
 
 class Classifier:
-    def __init__(self,name):
+    def __init__(self,name='svm'):
         self.name = name
         self.trainset=[]
         self.label=[]
         self.trainuserid=[]
-        self.clf = svm.SVC(kernel='rbf')
+        if name == 'svm':
+            self.clf = svm.SVC(kernel='rbf')
+        elif name =='tree':
+            self.clf = tree.DecisionTreeClassifier()
+        elif name =='forest':
+            self.clf=RFC(n_estimators=10)
         self.weight=[]
+        self.spam = 0
+        self.normal = 0
+    def trainsetclear(self):
+        self.trainset=[]
+        self.label=[]
+        self.trainuserid=[]
         self.spam = 0
         self.normal = 0
     def addtrainset(self,training={},Label={}):
@@ -25,9 +39,11 @@ class Classifier:
                 self.spam += 1
             else :
                 self.normal += 1
-        print 'training set build!'
+        if __name__=='__main__':
+            print 'training set build!'
     def Training(self):   
          self.clf.fit(self.trainset,self.label)
+         print self.spam,self.normal,len(self.label)
          print 'Training complete!'
     def TrainingB(self):   
         self.weight=[]
@@ -47,14 +63,42 @@ class Classifier:
 
 if __name__ == '__main__':
     #load features of all users including training set. username[i] corresponding feature userfeature[i]
-    usernames,userfeature=pre.loadfeature('../../../sssddata/spamleusers.txt')
+    #usernames,userfeature=pre.loadfeature('../../../sssddata/spamleusers.txt')
     #userLabel={userID:Label}
-    userLabel = pre.getLabel('../../../sssddata/finalseeds.txt')
-    Trainset = pre.getTrainset(userfeature, usernames, userLabel)
+    #userLabel = pre.getLabel('../../../sssddata/finalseeds.txt')
+    usermap,userfeature=pre.loadfeature('../../../sssddata/14wan/feature/13wan-metric.txt')
+    userLabel = pre.getallLabel('../../../sssddata/14wan/feature/13wan-metric.txt')
+    Trainset = pre.getTrainset(userfeature, usermap, userLabel)
+    Trainset = {}
+    for user in userLabel:
+        if userLabel[user] == 1:
+            Trainset[user] = userfeature[usermap[user]]
+    spamcount = len(Trainset)
+    
+    count = 0
+    for user in userLabel:
+        if userLabel[user] == 0:
+            if count < 4.0*spamcount:
+                count+=1
+                Trainset[user] = userfeature[usermap[user]]
+    
     c = Classifier('svm')
     c.addtrainset(Trainset,userLabel)
     c.TrainingB()
    # for user in Trainset.keys()
    # print Trainset
-    print c.Predict([0.1,1,0.1,0.1,0.2])
+    predict = {}
+    spam = 0
+    normal = 0
+    for user in userLabel:
+        if user not in Trainset.keys():
+            predict[user]=c.Predict(userfeature[usermap[user]])
+            print predict[user]
+            if predict[user] == 1:
+                spam +=1
+            else:
+                normal += 1
+    print spam,normal        
+         
+    #print c.Predict([0.1,1,0.1,0.1,0.2])
     pass

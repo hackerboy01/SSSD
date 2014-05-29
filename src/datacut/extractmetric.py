@@ -100,7 +100,7 @@ def run():
 def extract():
     s = ['profile.txt','content.txt','graph.txt','neighbor.txt']
     dir = r'E:/dataset/sssddata/14wan/feature/'
-    userset = loaduser('../../../sssddata/14wan/feature/testset')
+    userset = loaduser('../../../sssddata/14wan/feature/userset')
     spamset = loaduser('../../../sssddata/14wan/feature/14spamsuspend')
     print len(userset),len(spamset)
     metric={}
@@ -114,7 +114,7 @@ def extract():
                 except:
                     metric[temp[0]] = temp[1:]
         fname.close()
-    fout = open('../../../sssddata/14wan/feature/2-metric.arff','w')
+    fout = open('../../../sssddata/14wan/feature/13wan-metric.arff','w')
     fout.write('@relation\t metric\n\n')
     
     fout.write('@attribute friends numeric\n')
@@ -152,7 +152,13 @@ def extract():
         else:
             fout.write('\t'.join(metric[uid])+'\tN\n')
     fout.close()    
-    
+    fout = open('../../../sssddata/14wan/feature/13wan-metric.txt','w')
+    for uid in metric.keys():
+        if uid in spamset:
+            fout.write(uid+'\t'+'\t'.join(metric[uid])+'\tY\n')
+        else:
+            fout.write(uid+'\t'+'\t'.join(metric[uid])+'\tN\n')
+    fout.close() 
         
 def loaduser(file):
     f = open(file,'rb')
