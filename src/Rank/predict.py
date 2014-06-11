@@ -4,12 +4,12 @@ Created on 2014-5-7
 @author: Administrator
 '''
 
-import Classifier
+import Classifier 
 import pagerank as pg
 import Precessor as pre
 import pickle
 
-
+ratioc = 2
 ratio = 5.5
 tao = 600
 def PredictWithPagerank():
@@ -281,7 +281,187 @@ def PredictWithSpamrank():
     return spamSR  
 
 
-if __name__ == '__main__':
+def PredictWithSVM():
+    usermap,userfeature=pre.loadfeature('../../../sssddata/14wan/feature/13wan-metric.txt')
+    userLabel = pre.getallLabel('../../../sssddata/14wan/feature/13wan-metric.txt')
+    fbad = open('../../../sssddata/14wan/14spamsuspend','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    #===========================================================================
+    # netname = '1-smallnet-bio.txt' 
+    # PR=pg.PageRank()
+    # PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
+    # PR.initRank(spamset)
+    # PR.run(200, good=1.0, TrustRank=False)
+    # print 'pagerank'
+    # order = PR.orderRank(reverse=False)
+    #===========================================================================
+    
+    
+    #Trainset = pre.getTrainset(userfeature, usermap, userLabel)
+    Trainset = {}
+    for user in userLabel:
+        if userLabel[user] == 1:
+            Trainset[user] = userfeature[usermap[user]]
+    spamcount = len(Trainset)
+    
+    count = 0
+    #===========================================================================
+    # for item in order:
+    #     user,pr = item
+    #     if userLabel[user] == 0:
+    #          if count < 2.0*spamcount:
+    #             count+=1
+    #             Trainset[user] = userfeature[usermap[user]]           
+    #===========================================================================
+    for user in userLabel:
+        if userLabel[user] == 0:
+            if count < ratioc*spamcount:
+                count+=1
+                Trainset[user] = userfeature[usermap[user]]
+    
+    c = Classifier.Classifier('svm')
+    c.addtrainset(Trainset,userLabel)
+    c.Training()
+   # for user in Trainset.keys()
+   # print Trainset
+    predict = {}
+    spam = 0
+    normal = 0
+    SVMspam = set()
+    for user in userLabel:
+        if user not in Trainset.keys():
+            predict[user]=c.Predict(userfeature[usermap[user]])
+           # print predict[user]
+            if predict[user] == 1:
+                SVMspam.add(user)
+                spam +=1
+            else:
+                normal += 1
+    print 'SVM:',spam,normal  
+    return SVMspam
+def PredictWithTree():
+    usermap,userfeature=pre.loadfeature('../../../sssddata/14wan/feature/13wan-metric.txt')
+    userLabel = pre.getallLabel('../../../sssddata/14wan/feature/13wan-metric.txt')
+    fbad = open('../../../sssddata/14wan/14spamsuspend','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    #===========================================================================
+    # netname = '1-smallnet-bio.txt' 
+    # PR=pg.PageRank()
+    # PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
+    # PR.initRank(spamset)
+    # PR.run(200, good=1.0, TrustRank=False)
+    # print 'pagerank'
+    # order = PR.orderRank(reverse=False)
+    #===========================================================================
+    
+    
+    #Trainset = pre.getTrainset(userfeature, usermap, userLabel)
+    Trainset = {}
+    for user in userLabel:
+        if userLabel[user] == 1:
+            Trainset[user] = userfeature[usermap[user]]
+    spamcount = len(Trainset)
+    
+    count = 0
+    #===========================================================================
+    # for item in order:
+    #     user,pr = item
+    #     if userLabel[user] == 0:
+    #          if count < 2.0*spamcount:
+    #             count+=1
+    #             Trainset[user] = userfeature[usermap[user]]           
+    #===========================================================================
+    for user in userLabel:
+        if userLabel[user] == 0:
+            if count < ratioc*spamcount:
+                count+=1
+                Trainset[user] = userfeature[usermap[user]]
+    
+    c = Classifier.Classifier('tree')
+    c.addtrainset(Trainset,userLabel)
+    c.Training()
+   # for user in Trainset.keys()
+   # print Trainset
+    predict = {}
+    spam = 0
+    normal = 0
+    Treespam = set()
+    for user in userLabel:
+        if user not in Trainset.keys():
+            predict[user]=c.Predict(userfeature[usermap[user]])
+           # print predict[user]
+            if predict[user] == 1:
+                Treespam.add(user)
+                spam +=1
+            else:
+                normal += 1
+    print 'Tree:',spam,normal  
+    return Treespam
+    
+def PredictWithForest():
+    usermap,userfeature=pre.loadfeature('../../../sssddata/14wan/feature/13wan-metric.txt')
+    userLabel = pre.getallLabel('../../../sssddata/14wan/feature/13wan-metric.txt')
+    fbad = open('../../../sssddata/14wan/14spamsuspend','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    #===========================================================================
+    # netname = '1-smallnet-bio.txt' 
+    # PR=pg.PageRank()
+    # PR.initNet('../../../sssddata/14wan/rank/'+netname,reverse=False)
+    # PR.initRank(spamset)
+    # PR.run(200, good=1.0, TrustRank=False)
+    # print 'pagerank'
+    # order = PR.orderRank(reverse=False)
+    #===========================================================================
+    
+    
+    #Trainset = pre.getTrainset(userfeature, usermap, userLabel)
+    Trainset = {}
+    for user in userLabel:
+        if userLabel[user] == 1:
+            Trainset[user] = userfeature[usermap[user]]
+    spamcount = len(Trainset)
+    
+    count = 0
+    #===========================================================================
+    # for item in order:
+    #     user,pr = item
+    #     if userLabel[user] == 0:
+    #          if count < 2.0*spamcount:
+    #             count+=1
+    #             Trainset[user] = userfeature[usermap[user]]           
+    #===========================================================================
+    for user in userLabel:
+        if userLabel[user] == 0:
+            if count < ratioc*spamcount:
+                count+=1
+                Trainset[user] = userfeature[usermap[user]]
+    
+    c = Classifier.Classifier('forest')
+    c.addtrainset(Trainset,userLabel)
+    c.Training()
+   # for user in Trainset.keys()
+   # print Trainset
+    predict = {}
+    spam = 0
+    normal = 0
+    Forestspam = set()
+    for user in userLabel:
+        if user not in Trainset.keys():
+            predict[user]=c.Predict(userfeature[usermap[user]])
+           # print predict[user]
+            if predict[user] == 1:
+                Forestspam.add(user)
+                spam +=1
+            else:
+                normal += 1
+    print 'Forest:',spam,normal  
+    return Forestspam
+
+
+def PredictRank():
     spamTR=PredictWithTrustrank()
     print len(spamTR)
     #spamPR=PredictWithPagerank()
@@ -292,3 +472,17 @@ if __name__ == '__main__':
     pickle.dump(spamlast, fout)
     fout.close()
     print len(spamlast)
+
+def PredictClass():
+    svmset = PredictWithSVM()
+    #treeset = PredictWithTree()
+    forestset = PredictWithForest()
+    spamset = svmset | forestset
+    #spamset = forestset
+    fout = open('../../../sssddata/14wan/newspam_forest_or_svm','wb')
+    pickle.dump(spamset, fout)
+    fout.close()
+    print len(spamset)
+    
+if __name__ == '__main__':
+    PredictClass()
