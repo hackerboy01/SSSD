@@ -6,24 +6,41 @@ Created on 2014-4-17
 import pickle
 
 def runTrustrank():
-    file = open('../../../sssddata/14wan/rank/Trustrank_seeds50','r')
+    fbad = open('../../../sssddata/14wan/14spamsuspend','rb')
+    spamset = pickle.load(fbad)
+    fbad.close()
+    fin = open('../../../sssddata/14wan/newspam_svm2','rb')
+    newspam = pickle.load(fin)
+    fin.close()
+    spamset = newspam|spamset
+    file = open('../../../sssddata/14wan/ranklast/2-Trustrank_seeds200','r')
     count = 0
     spamdic={}
     spamnum = 0
+    ratio=0
+    spamcdf={}
+    s=0
+    a=0
     for line in file:
         count += 1
+        
         temp = line.strip().split()
-        if len(temp)==3:
+        if len(temp)<3:
             spamnum+=1
-        if count%1000==0:
-            spamdic[count]=spamnum
+            s+=1
+        if count%136==0:
+            a+=spamnum
+            spamdic[ratio]=a
+            ratio += 1
             spamnum=0
-    spamdic[count]=spamnum
+    a+=spamnum
+    spamdic[ratio]=a
     keys = spamdic.keys()
     keys.sort()
     for it in keys:
-        print  spamdic[it]
+        print  spamdic[it]/float(s)
     print sum(spamdic.values())
+    print s
 
 def runAntiTrustrank():
     file = open('../../../sssddata/14wan/rank/2-anti-Trustrank_seeds200','r')
@@ -101,8 +118,8 @@ def spampredict():
     
 if __name__ == '__main__':
     #runAntiTrustrank()
-    #runTrustrank()
+    runTrustrank()
     #runSpamRank()
     #temp()
-    spampredict()
+    #spampredict()
     pass

@@ -7,6 +7,8 @@ from sklearn import preprocessing as pre
 import numpy as np
 
 loglist = [5,6,12,13,14,19,20,21]
+uml = [0,1,2,3,6,7,8,9,11,13,14,23]
+ev = [0,2,3,4,5,6,7,8,13,15,16,19,20,21,22,23]
 
 def loadfeature(filename):
     file = open(filename,'r')
@@ -28,7 +30,51 @@ def loadfeature(filename):
                 temp[x]=float(temp[x])
                 if x in loglist:
                     temp[x] = np.log(temp[x]+1)
+                    
             userfeature.append(temp) 
+            
+            #userfeature[count].append((float(temp[2])+1)/(float(temp[3])+1))    
+            count+=1
+    except   Exception,e:
+        print Exception,e
+        print count
+    file.close()
+    print count
+    X_train = np.array(userfeature)
+    #print X_train
+    min_max_scaler = pre.MinMaxScaler()
+    userfeature = min_max_scaler.fit_transform(X_train)   
+    print 'precess loadfeature!',len(usernames.keys())
+    #print userfeature
+    return usernames,userfeature
+def loadfeature_2compare(filename):
+    file = open(filename,'r')
+    usernames={}
+    userfeature=[]
+    count = 0
+    #fout = open('../../../sssddata/14wan/feature/pre_metric.txt','w')
+    try:
+
+        while 1:
+            line = file.readline()
+            if line =='':
+                break
+            temp = line.strip().split()
+            usernames[temp[0]]=count
+            temp = temp[1:len(temp)-1]
+            #temp = [float(temp[x]) for x in range(2,6) ]
+            for x in range(0,len(temp)):
+                temp[x]=float(temp[x])
+                if x in loglist:
+                    temp[x] = np.log(temp[x]+1)
+                    
+            #### Compare with Unconvering + ML
+            temp2 = []
+            for x in range(len(temp)):
+                if x in uml:
+                    temp2.append(temp[x])
+                    
+            userfeature.append(temp2) 
             
             #userfeature[count].append((float(temp[2])+1)/(float(temp[3])+1))    
             count+=1

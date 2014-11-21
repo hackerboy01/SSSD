@@ -7,6 +7,8 @@ import Precessor as pre
 from sklearn import svm
 from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier as RFC
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
 import pagerank as pg
 import pickle
 
@@ -22,6 +24,10 @@ class Classifier:
             self.clf = tree.DecisionTreeClassifier()
         elif name =='forest':
             self.clf=RFC(n_estimators=10)
+        elif name == 'NB':
+            self.clf = GaussianNB()
+        elif name == 'LR':
+            self.clf = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
         self.weight=[]
         self.spam = 0
         self.normal = 0
